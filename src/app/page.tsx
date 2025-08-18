@@ -175,13 +175,20 @@ export default function HomePage() {
         ) : (
           <>
             {results.length > 0 && (
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-white mb-2">Search Results</h2>
-                <p className="text-gray-400">Found {results.length} amazing series for you</p>
+              <div className="text-center mb-12">
+                <div className="inline-flex items-center space-x-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl px-6 py-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                    <span className="text-2xl">🎬</span>
+                  </div>
+                  <div className="text-left">
+                    <h2 className="text-2xl font-bold text-white">Search Results</h2>
+                    <p className="text-gray-300">Found {results.length} amazing series for you</p>
+                  </div>
+                </div>
               </div>
             )}
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-8">
               {results.map((item) => (
                 <Dialog key={item.id} open={isModalOpen && selectedSeriesId === item.id} onOpenChange={setIsModalOpen}>
                   <DialogTrigger asChild>
@@ -192,99 +199,123 @@ export default function HomePage() {
                       onClick={() => handleSeriesClick(item.id)}
                     />
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden bg-slate-900/95 backdrop-blur-md border-white/20">
-                    <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 p-6 border-b border-white/10">
+                  <DialogContent className="sm:max-w-[600px] max-h-[90vh] p-0 overflow-hidden bg-slate-900/95 backdrop-blur-md border-white/20 shadow-2xl">
+                    <div className="bg-gradient-to-r from-purple-600/30 to-pink-600/30 p-6 border-b border-white/10">
                       <DialogHeader>
-                        <DialogTitle className="text-2xl font-bold text-white">
+                        <DialogTitle className="text-2xl font-bold text-white mb-1">
                           📅 Calculate Your Viewing Schedule
                         </DialogTitle>
-                        <p className="text-gray-300 mt-2">Plan your perfect binge-watching experience</p>
+                        <p className="text-gray-300 text-base">Plan your perfect binge-watching experience</p>
                       </DialogHeader>
                     </div>
                     
-                    <div className="p-6 space-y-6">
-                      <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          📺 Total Episodes
-                        </label>
-                        <Input
-                          value={totalEpisodes || 'Loading...'}
-                          readOnly
-                          className="bg-white/10 border-white/20 text-white"
-                        />
-                      </div>
-                      
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                          <label className="block text-sm font-medium text-gray-300 mb-2">
-                            ⚡ Episodes per Day
-                          </label>
+                    <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
+                      <div className="p-6 space-y-6">
+                        <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl p-4 border border-blue-500/20">
+                          <div className="flex items-center space-x-3 mb-3">
+                            <div className="w-6 h-6 bg-blue-500/20 rounded-full flex items-center justify-center">
+                              <span className="text-blue-400 text-xs">📺</span>
+                            </div>
+                            <label className="text-base font-semibold text-blue-300">
+                              Total Episodes
+                            </label>
+                          </div>
+                          <Input
+                            value={totalEpisodes || 'Loading...'}
+                            readOnly
+                            className="bg-white/5 border-blue-500/30 text-white text-base font-medium h-10"
+                          />
+                        </div>                      <div className="grid gap-6">
+                        <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl p-4 border border-green-500/20">
+                          <div className="flex items-center space-x-3 mb-3">
+                            <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center">
+                              <span className="text-green-400 text-xs">⚡</span>
+                            </div>
+                            <label className="text-base font-semibold text-green-300">
+                              Episodes per Day
+                            </label>
+                          </div>
                           <Input
                             type="number"
-                            placeholder="e.g., 2"
+                            placeholder="e.g., 2, 3, 4..."
                             value={desiredEpisodesPerDay || ''}
                             onChange={(e) => setDesiredEpisodesPerDay(Number(e.target.value))}
-                            className="bg-white/10 border-white/20 text-white placeholder:text-gray-500"
+                            className="bg-white/5 border-green-500/30 text-white placeholder:text-gray-400 text-base h-10"
                           />
+                          <p className="text-xs text-gray-400 mt-2">Leave empty to calculate based on dates</p>
                         </div>
                         
-                        <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                          <label className="block text-sm font-medium text-gray-300 mb-2">
-                            📅 Start Date
-                          </label>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  "w-full justify-start text-left font-normal bg-white/10 border-white/20 text-white hover:bg-white/20",
-                                  !startDate && "text-gray-400"
-                                )}
-                              >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {startDate ? format(startDate, "PPP") : "Pick start date"}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0 bg-slate-900 border-white/20">
-                              <Calendar
-                                mode="single"
-                                selected={startDate}
-                                onSelect={setStartDate}
-                                initialFocus
-                                className="text-white"
-                              />
-                            </PopoverContent>
-                          </Popover>
+                        <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl p-4 border border-purple-500/20">
+                          <div className="flex items-center space-x-3 mb-3">
+                            <div className="w-6 h-6 bg-purple-500/20 rounded-full flex items-center justify-center">
+                              <span className="text-purple-400 text-xs">📅</span>
+                            </div>
+                            <label className="text-base font-semibold text-purple-300">
+                              Date Range
+                            </label>
+                          </div>
+                          
+                          <div className="grid md:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Start Date
+                              </label>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    className={cn(
+                                      "w-full justify-start text-left font-normal bg-white/5 border-purple-500/30 text-white hover:bg-white/10 h-10 text-sm",
+                                      !startDate && "text-gray-400"
+                                    )}
+                                  >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {startDate ? format(startDate, "MMM dd") : "Pick start"}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0 bg-slate-900 border-white/20">
+                                  <Calendar
+                                    mode="single"
+                                    selected={startDate}
+                                    onSelect={setStartDate}
+                                    initialFocus
+                                    className="text-white"
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                End Date
+                              </label>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    className={cn(
+                                      "w-full justify-start text-left font-normal bg-white/5 border-purple-500/30 text-white hover:bg-white/10 h-10 text-sm",
+                                      !endDate && "text-gray-400"
+                                    )}
+                                  >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {endDate ? format(endDate, "MMM dd") : "Pick end"}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0 bg-slate-900 border-white/20">
+                                  <Calendar
+                                    mode="single"
+                                    selected={endDate}
+                                    onSelect={setEndDate}
+                                    initialFocus
+                                    className="text-white"
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-400 mt-2">Choose your preferred watching period</p>
                         </div>
-                      </div>
-                      
-                      <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          🎯 End Date
-                        </label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left font-normal bg-white/10 border-white/20 text-white hover:bg-white/20",
-                                !endDate && "text-gray-400"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {endDate ? format(endDate, "PPP") : "Pick end date"}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0 bg-slate-900 border-white/20">
-                            <Calendar
-                              mode="single"
-                              selected={endDate}
-                              onSelect={setEndDate}
-                              initialFocus
-                              className="text-white"
-                            />
-                          </PopoverContent>
-                        </Popover>
                       </div>
                       
                       <div className="flex gap-3">
@@ -295,9 +326,10 @@ export default function HomePage() {
                             setEndDate(undefined);
                             setDesiredEpisodesPerDay(null);
                           }}
-                          className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20"
+                          className="flex-1 bg-white/5 border-white/20 text-white hover:bg-white/10 h-10 font-medium transition-all duration-200 hover:scale-105 text-sm"
                         >
-                          📅 Start Today
+                          <span className="mr-1">📅</span>
+                          Start Today
                         </Button>
                         <Button
                           variant="outline"
@@ -307,29 +339,37 @@ export default function HomePage() {
                             setDesiredEpisodesPerDay(null);
                             setCalculationMessage(null);
                           }}
-                          className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20"
+                          className="flex-1 bg-white/5 border-white/20 text-white hover:bg-red-500/20 hover:border-red-500/30 h-10 font-medium transition-all duration-200 hover:scale-105 text-sm"
                         >
-                          🔄 Clear
+                          <span className="mr-1">🔄</span>
+                          Clear
                         </Button>
                         <Button
                           onClick={handleCalculate}
-                          className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 font-semibold"
+                          className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 font-semibold h-10 transition-all duration-200 hover:scale-105 shadow-lg text-sm"
                         >
-                          ✨ Calculate
+                          <span className="mr-1">✨</span>
+                          Calculate
                         </Button>
                       </div>
                       
                       {calculationMessage && (
-                        <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 border border-green-500/30 rounded-lg p-4 mt-6">
+                        <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 border border-green-500/30 rounded-xl p-4 shadow-lg backdrop-blur-sm">
                           <div className="flex items-center space-x-2 mb-2">
-                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                            <span className="text-sm font-medium text-green-300">Your Schedule</span>
+                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg shadow-green-400/50" />
+                            <span className="text-base font-semibold text-green-300">Your Viewing Schedule</span>
                           </div>
-                          <p className="text-white font-medium leading-relaxed">
+                          <p className="text-white font-medium leading-relaxed text-sm mb-3">
                             {calculationMessage}
                           </p>
+                          <div className="pt-2 border-t border-green-500/20">
+                            <p className="text-green-200/80 text-xs">
+                              💡 Pro tip: Adjust your schedule as needed for the perfect viewing experience!
+                            </p>
+                          </div>
                         </div>
                       )}
+                      </div>
                     </div>
                   </DialogContent>
                 </Dialog>
