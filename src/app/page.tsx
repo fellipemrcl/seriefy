@@ -19,7 +19,8 @@ export default function HomePage() {
   const [searched, setSearched] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSeriesId, setSelectedSeriesId] = useState<number | null>(null);
-  const [targetDate, setTargetDate] = useState<Date | undefined>(undefined);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [totalEpisodes, setTotalEpisodes] = useState<number | null>(null);
   const [desiredEpisodesPerDay, setDesiredEpisodesPerDay] = useState<number | null>(null);
   const [calculationMessage, setCalculationMessage] = useState<string | null>(null);
@@ -53,26 +54,36 @@ export default function HomePage() {
 
     if (desiredEpisodesPerDay !== null && desiredEpisodesPerDay > 0) {
       // Scenario B: User provided desired episodes per day
-      const startDate = targetDate || new Date(); // Use targetDate or today
+      const start = startDate || new Date(); // Use startDate or today
       const daysToFinish = Math.ceil(totalEpisodes / desiredEpisodesPerDay);
-      const finish = new Date(startDate);
-      finish.setDate(startDate.getDate() + daysToFinish);
-      setCalculationMessage(`Watching ${desiredEpisodesPerDay} episodes per day, you will finish by ${format(finish, "PPP")}.`);
+      const finish = new Date(start);
+      finish.setDate(start.getDate() + daysToFinish);
+      setCalculationMessage(`Watching ${desiredEpisodesPerDay} episodes per day starting ${format(start, "PPP")}, you will finish by ${format(finish, "PPP")}.`);
 
-    } else if (targetDate) {
-      // Scenario A: User provided target date (original functionality)
-      const today = new Date();
-      const diffTime = Math.abs(targetDate.getTime() - today.getTime());
+    } else if (startDate && endDate) {
+      // Scenario A: User provided start and end dates
+      const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       if (diffDays > 0) {
         const episodesNeeded = Math.ceil(totalEpisodes / diffDays);
-        setCalculationMessage(`To finish by ${format(targetDate, "PPP")}, you need to watch ${episodesNeeded} episodes per day.`);
+        setCalculationMessage(`To finish between ${format(startDate, "PPP")} and ${format(endDate, "PPP")} (${diffDays} days), you need to watch ${episodesNeeded} episodes per day.`);
+      } else {
+        setCalculationMessage(`Start and end dates must be different.`);
+      }
+    } else if (endDate) {
+      // Only end date provided, use today as start
+      const today = new Date();
+      const diffTime = Math.abs(endDate.getTime() - today.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (diffDays > 0) {
+        const episodesNeeded = Math.ceil(totalEpisodes / diffDays);
+        setCalculationMessage(`To finish by ${format(endDate, "PPP")} starting today, you need to watch ${episodesNeeded} episodes per day.`);
       } else {
         setCalculationMessage(`To finish today, you need to watch ${totalEpisodes} episodes.`);
       }
     } else {
       // No valid input for calculation
-      setCalculationMessage(null); // Reset message
+      setCalculationMessage("Please provide either episodes per day or start/end dates to calculate your schedule."); 
     }
   };
 
@@ -219,7 +230,7 @@ export default function HomePage() {
                         
                         <div className="bg-white/5 rounded-lg p-4 border border-white/10">
                           <label className="block text-sm font-medium text-gray-300 mb-2">
-                            🎯 Target Date
+                            📅 Start Date
                           </label>
                           <Popover>
                             <PopoverTrigger asChild>
@@ -227,18 +238,18 @@ export default function HomePage() {
                                 variant="outline"
                                 className={cn(
                                   "w-full justify-start text-left font-normal bg-white/10 border-white/20 text-white hover:bg-white/20",
-                                  !targetDate && "text-gray-400"
+                                  !startDate && "text-gray-400"
                                 )}
                               >
                                 <CalendarIcon className="mr-2 h-4 w-4" />
-                                {targetDate ? format(targetDate, "PPP") : "Pick a date"}
+                                {startDate ? format(startDate, "PPP") : "Pick start date"}
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0 bg-slate-900 border-white/20">
                               <Calendar
                                 mode="single"
-                                selected={targetDate}
-                                onSelect={setTargetDate}
+                                selected={startDate}
+                                onSelect={setStartDate}
                                 initialFocus
                                 className="text-white"
                               />
@@ -247,13 +258,58 @@ export default function HomePage() {
                         </div>
                       </div>
                       
+                      <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          🎯 End Date
+                        </label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal bg-white/10 border-white/20 text-white hover:bg-white/20",
+                                !endDate && "text-gray-400"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {endDate ? format(endDate, "PPP") : "Pick end date"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0 bg-slate-900 border-white/20">
+                            <Calendar
+                              mode="single"
+                              selected={endDate}
+                              onSelect={setEndDate}
+                              initialFocus
+                              className="text-white"
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      
                       <div className="flex gap-3">
                         <Button
                           variant="outline"
-                          onClick={() => setTargetDate(new Date())}
+                          onClick={() => {
+                            setStartDate(new Date());
+                            setEndDate(undefined);
+                            setDesiredEpisodesPerDay(null);
+                          }}
                           className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20"
                         >
-                          📅 Today
+                          📅 Start Today
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setStartDate(undefined);
+                            setEndDate(undefined);
+                            setDesiredEpisodesPerDay(null);
+                            setCalculationMessage(null);
+                          }}
+                          className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20"
+                        >
+                          🔄 Clear
                         </Button>
                         <Button
                           onClick={handleCalculate}
