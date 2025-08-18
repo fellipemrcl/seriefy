@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import MovieCard from "@/components/MovieCard";
-import { searchMedia, MediaResult, getSeriesDetails } from "./actions";
+import FavoriteButton from "@/components/FavoriteButton";
+import { searchMedia, MediaResult, getSeriesDetails, SeriesDetails } from "./actions";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,9 +20,11 @@ export default function HomePage() {
   const [searched, setSearched] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSeriesId, setSelectedSeriesId] = useState<number | null>(null);
+  const [selectedSeries, setSelectedSeries] = useState<MediaResult | null>(null);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [totalEpisodes, setTotalEpisodes] = useState<number | null>(null);
+  const [seriesDetails, setSeriesDetails] = useState<SeriesDetails | null>(null);
   const [desiredEpisodesPerDay, setDesiredEpisodesPerDay] = useState<number | null>(null);
   const [calculationMessage, setCalculationMessage] = useState<string | null>(null);
 
@@ -36,12 +39,14 @@ export default function HomePage() {
     setLoading(false);
   };
 
-  const handleSeriesClick = async (seriesId: number) => {
+  const handleSeriesClick = async (seriesId: number, series: MediaResult) => {
     setSelectedSeriesId(seriesId);
+    setSelectedSeries(series);
     setIsModalOpen(true);
     const details = await getSeriesDetails(seriesId);
     if (details && details.total_episodes !== undefined) {
       setTotalEpisodes(details.total_episodes);
+      setSeriesDetails(details);
     }
   };
 
@@ -196,16 +201,28 @@ export default function HomePage() {
                       title={item.name || ''}
                       posterUrl={getImageUrl(item.poster_path)}
                       seasons={item.number_of_seasons}
-                      onClick={() => handleSeriesClick(item.id)}
+                      onClick={() => handleSeriesClick(item.id, item)}
+                      series={item}
+                      seriesDetails={seriesDetails || undefined}
                     />
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[600px] max-h-[90vh] p-0 overflow-hidden bg-slate-900/95 backdrop-blur-md border-white/20 shadow-2xl">
                     <div className="bg-gradient-to-r from-purple-600/30 to-pink-600/30 p-6 border-b border-white/10">
                       <DialogHeader>
-                        <DialogTitle className="text-2xl font-bold text-white mb-1">
-                          📅 Calculate Your Viewing Schedule
-                        </DialogTitle>
-                        <p className="text-gray-300 text-base">Plan your perfect binge-watching experience</p>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <DialogTitle className="text-2xl font-bold text-white mb-1">
+                              📅 Calculate Your Viewing Schedule
+                            </DialogTitle>
+                            <p className="text-gray-300 text-base">Plan your perfect binge-watching experience</p>
+                          </div>
+                          {selectedSeries && (
+                            <FavoriteButton 
+                              series={selectedSeries} 
+                              seriesDetails={seriesDetails || undefined}
+                            />
+                          )}
+                        </div>
                       </DialogHeader>
                     </div>
                     

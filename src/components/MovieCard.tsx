@@ -1,15 +1,30 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import FavoriteButton from './FavoriteButton';
+import { MediaResult, SeriesDetails } from '@/app/actions';
 
 interface MovieCardProps {
   title: string;
   posterUrl: string;
   seasons?: number;
   onClick?: () => void;
+  series?: MediaResult;
+  seriesDetails?: SeriesDetails;
 }
 
-const MovieCard: React.FC<MovieCardProps> = ({ title, posterUrl, seasons, onClick }) => {
+const MovieCard: React.FC<MovieCardProps> = ({ 
+  title, 
+  posterUrl, 
+  seasons, 
+  onClick,
+  series,
+  seriesDetails 
+}) => {
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the card's onClick
+  };
+
   return (
     <motion.div
       className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden h-full flex flex-col cursor-pointer transform transition-all duration-300"
@@ -39,15 +54,25 @@ const MovieCard: React.FC<MovieCardProps> = ({ title, posterUrl, seasons, onClic
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         
+        {/* Favorite Button */}
+        {series && (
+          <div className="absolute top-3 right-3 z-10" onClick={handleFavoriteClick}>
+            <FavoriteButton 
+              series={series} 
+              seriesDetails={seriesDetails}
+            />
+          </div>
+        )}
+        
         {/* Rating Badge */}
-        <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm rounded-full px-3 py-1 flex items-center space-x-1">
+        <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm rounded-full px-3 py-1 flex items-center space-x-1">
           <span className="text-yellow-400 text-sm">⭐</span>
           <span className="text-white text-sm font-medium">TMDB</span>
         </div>
         
         {/* Seasons Badge */}
         {seasons && (
-          <div className="absolute top-3 left-3 bg-gradient-to-r from-purple-600/80 to-pink-600/80 backdrop-blur-sm rounded-full px-3 py-1">
+          <div className="absolute bottom-3 left-3 bg-gradient-to-r from-purple-600/80 to-pink-600/80 backdrop-blur-sm rounded-full px-3 py-1">
             <span className="text-white text-sm font-medium">{seasons} Season{seasons > 1 ? 's' : ''}</span>
           </div>
         )}

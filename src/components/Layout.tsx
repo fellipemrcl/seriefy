@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -23,9 +24,21 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               </Link>
             </div>
             
-            <div className="hidden md:flex items-center space-x-4">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-sm text-gray-300">Live TMDB Data</span>
+            <div className="flex items-center space-x-4">
+              <Link href="/favorites">
+                <Button 
+                  variant="outline" 
+                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30 transition-all duration-200 hidden sm:flex items-center space-x-2"
+                >
+                  <span>❤️</span>
+                  <span>Favorites</span>
+                </Button>
+              </Link>
+              
+              <div className="hidden md:flex items-center space-x-4">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                <span className="text-sm text-gray-300">Live TMDB Data</span>
+              </div>
             </div>
           </div>
         </div>
