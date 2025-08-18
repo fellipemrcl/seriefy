@@ -20,10 +20,8 @@ export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSeriesId, setSelectedSeriesId] = useState<number | null>(null);
   const [targetDate, setTargetDate] = useState<Date | undefined>(undefined);
-  const [episodesPerDay, setEpisodesPerDay] = useState<number | null>(null);
   const [totalEpisodes, setTotalEpisodes] = useState<number | null>(null);
   const [desiredEpisodesPerDay, setDesiredEpisodesPerDay] = useState<number | null>(null);
-  const [finishDate, setFinishDate] = useState<Date | null>(null);
   const [calculationMessage, setCalculationMessage] = useState<string | null>(null);
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -41,7 +39,7 @@ export default function HomePage() {
     setSelectedSeriesId(seriesId);
     setIsModalOpen(true);
     const details = await getSeriesDetails(seriesId);
-    if (details) {
+    if (details && details.total_episodes !== undefined) {
       setTotalEpisodes(details.total_episodes);
     }
   };
@@ -49,21 +47,16 @@ export default function HomePage() {
   const handleCalculate = () => {
     if (totalEpisodes === null) {
       // No total episodes, cannot calculate
-      setEpisodesPerDay(null);
-      setFinishDate(null);
       setCalculationMessage(null); // Reset message
       return;
     }
 
     if (desiredEpisodesPerDay !== null && desiredEpisodesPerDay > 0) {
       // Scenario B: User provided desired episodes per day
-      setEpisodesPerDay(desiredEpisodesPerDay); // Set episodesPerDay to desired value
-
       const startDate = targetDate || new Date(); // Use targetDate or today
       const daysToFinish = Math.ceil(totalEpisodes / desiredEpisodesPerDay);
       const finish = new Date(startDate);
       finish.setDate(startDate.getDate() + daysToFinish);
-      setFinishDate(finish);
       setCalculationMessage(`Watching ${desiredEpisodesPerDay} episodes per day, you will finish by ${format(finish, "PPP")}.`);
 
     } else if (targetDate) {
@@ -72,17 +65,13 @@ export default function HomePage() {
       const diffTime = Math.abs(targetDate.getTime() - today.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       if (diffDays > 0) {
-        setEpisodesPerDay(Math.ceil(totalEpisodes / diffDays));
-        setCalculationMessage(`To finish by ${format(targetDate, "PPP")}, you need to watch ${Math.ceil(totalEpisodes / diffDays)} episodes per day.`);
+        const episodesNeeded = Math.ceil(totalEpisodes / diffDays);
+        setCalculationMessage(`To finish by ${format(targetDate, "PPP")}, you need to watch ${episodesNeeded} episodes per day.`);
       } else {
-        setEpisodesPerDay(totalEpisodes); // Complete today
         setCalculationMessage(`To finish today, you need to watch ${totalEpisodes} episodes.`);
       }
-      setFinishDate(null); // Reset finish date for this scenario
     } else {
       // No valid input for calculation
-      setEpisodesPerDay(null);
-      setFinishDate(null);
       setCalculationMessage(null); // Reset message
     }
   };
@@ -93,130 +82,214 @@ export default function HomePage() {
 
   return (
     <main className="container mx-auto p-4 md:p-8">
-      <div className="flex flex-col items-center text-center mb-12">
-        <h1 className="text-4xl font-bold tracking-tight mb-4">Series Tracker</h1>
-        <p className="text-lg text-muted-foreground">
-          Search for your favorite TV shows to track what you've watched.
+      {/* Hero Section */}
+      <div className="flex flex-col items-center text-center mb-16 relative">
+        {/* Floating Elements */}
+        <div className="absolute -top-4 -left-4 w-24 h-24 bg-purple-500/20 rounded-full blur-xl animate-pulse" />
+        <div className="absolute -top-8 -right-8 w-32 h-32 bg-pink-500/20 rounded-full blur-xl animate-pulse delay-1000" />
+        
+        <div className="relative">
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
+            Series Tracker
+          </h1>
+          <div className="w-24 h-1 bg-gradient-to-r from-purple-400 to-pink-400 mx-auto rounded-full mb-6" />
+        </div>
+        
+        <p className="text-xl md:text-2xl text-gray-300 max-w-2xl leading-relaxed">
+          Discover your next binge-watch and calculate the perfect viewing schedule
         </p>
+        
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 w-full max-w-4xl">
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 text-center">
+            <div className="text-3xl font-bold text-purple-400 mb-2">🎬</div>
+            <div className="text-sm text-gray-400">TV Shows</div>
+            <div className="text-lg font-semibold">Unlimited</div>
+          </div>
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 text-center">
+            <div className="text-3xl font-bold text-pink-400 mb-2">📅</div>
+            <div className="text-sm text-gray-400">Schedule</div>
+            <div className="text-lg font-semibold">Smart Planning</div>
+          </div>
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 text-center">
+            <div className="text-3xl font-bold text-blue-400 mb-2">⚡</div>
+            <div className="text-sm text-gray-400">Data Source</div>
+            <div className="text-lg font-semibold">TMDB API</div>
+          </div>
+        </div>
       </div>
 
-      <div className="max-w-2xl mx-auto">
-        <form onSubmit={handleSearch} className="flex w-full items-center space-x-2">
-          <Input
-            type="text"
-            placeholder="Search for a series..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="flex-grow"
-          />
-          <Button type="submit" disabled={loading}>
-            {loading ? "Searching..." : "Search"}
-          </Button>
-        </form>
+      {/* Search Section */}
+      <div className="max-w-3xl mx-auto mb-16">
+        <div className="relative">
+          <form onSubmit={handleSearch} className="flex w-full items-center space-x-4">
+            <div className="relative flex-grow">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <Input
+                type="text"
+                placeholder="Search for your next series adventure..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="pl-12 pr-4 py-4 text-lg bg-white/10 backdrop-blur-sm border-white/20 placeholder:text-gray-400 focus:border-purple-400 focus:ring-purple-400/20 rounded-2xl"
+              />
+            </div>
+            <Button 
+              type="submit" 
+              disabled={loading}
+              className="px-8 py-4 text-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-0 rounded-2xl font-semibold transform transition-all duration-200 hover:scale-105 active:scale-95"
+            >
+              {loading ? (
+                <div className="flex items-center space-x-2">
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Searching...</span>
+                </div>
+              ) : (
+                "Search"
+              )}
+            </Button>
+          </form>
+        </div>
       </div>
 
       <div className="mt-12">
         {loading ? (
-          <p className="text-center">Loading...</p>
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mb-4" />
+            <p className="text-xl text-gray-300">Searching the universe of series...</p>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 card-grid">
-            {results.map((item) => (
-              <Dialog key={item.id} open={isModalOpen && selectedSeriesId === item.id} onOpenChange={setIsModalOpen}>
-                <DialogTrigger asChild>
-                  <MovieCard
-                    title={item.name || ''}
-                    posterUrl={getImageUrl(item.poster_path)}
-                    seasons={item.number_of_seasons}
-                    rating={0} // Placeholder for rating
-                    onClick={() => handleSeriesClick(item.id)}
-                  />
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px] p-6">
-                  <DialogHeader>
-                    <DialogTitle>Calculate Episodes Per Day</DialogTitle>
-                  </DialogHeader>
-                  <div className="grid gap-6 py-4">
-                    <div className="grid grid-cols-4 items-center gap-6">
-                      <label htmlFor="totalEpisodes" className="text-right">
-                        Total Episodes
-                      </label>
-                      <Input
-                        id="totalEpisodes"
-                        value={totalEpisodes || ''}
-                        readOnly
-                        className="col-span-3"
-                      />
+          <>
+            {results.length > 0 && (
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-white mb-2">Search Results</h2>
+                <p className="text-gray-400">Found {results.length} amazing series for you</p>
+              </div>
+            )}
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+              {results.map((item) => (
+                <Dialog key={item.id} open={isModalOpen && selectedSeriesId === item.id} onOpenChange={setIsModalOpen}>
+                  <DialogTrigger asChild>
+                    <MovieCard
+                      title={item.name || ''}
+                      posterUrl={getImageUrl(item.poster_path)}
+                      seasons={item.number_of_seasons}
+                      onClick={() => handleSeriesClick(item.id)}
+                    />
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden bg-slate-900/95 backdrop-blur-md border-white/20">
+                    <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 p-6 border-b border-white/10">
+                      <DialogHeader>
+                        <DialogTitle className="text-2xl font-bold text-white">
+                          📅 Calculate Your Viewing Schedule
+                        </DialogTitle>
+                        <p className="text-gray-300 mt-2">Plan your perfect binge-watching experience</p>
+                      </DialogHeader>
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-6">
-                      <label htmlFor="desiredEpisodesPerDay" className="text-right">
-                        Episodes per Day (Desired)
-                      </label>
-                      <Input
-                        id="desiredEpisodesPerDay"
-                        type="number"
-                        value={desiredEpisodesPerDay || ''}
-                        onChange={(e) => setDesiredEpisodesPerDay(Number(e.target.value))}
-                        className="col-span-3"
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-6">
-                      <label htmlFor="targetDate" className="text-right">
-                        Target Date
-                      </label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-[240px] justify-start text-left font-normal",
-                              !targetDate && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {targetDate ? format(targetDate, "PPP") : <span>Pick a date</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={targetDate}
-                            onSelect={setTargetDate}
-                            initialFocus
+                    
+                    <div className="p-6 space-y-6">
+                      <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          📺 Total Episodes
+                        </label>
+                        <Input
+                          value={totalEpisodes || 'Loading...'}
+                          readOnly
+                          className="bg-white/10 border-white/20 text-white"
+                        />
+                      </div>
+                      
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            ⚡ Episodes per Day
+                          </label>
+                          <Input
+                            type="number"
+                            placeholder="e.g., 2"
+                            value={desiredEpisodesPerDay || ''}
+                            onChange={(e) => setDesiredEpisodesPerDay(Number(e.target.value))}
+                            className="bg-white/10 border-white/20 text-white placeholder:text-gray-500"
                           />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-6">
-                      <div className="col-span-3 col-start-2">
+                        </div>
+                        
+                        <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            🎯 Target Date
+                          </label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full justify-start text-left font-normal bg-white/10 border-white/20 text-white hover:bg-white/20",
+                                  !targetDate && "text-gray-400"
+                                )}
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {targetDate ? format(targetDate, "PPP") : "Pick a date"}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0 bg-slate-900 border-white/20">
+                              <Calendar
+                                mode="single"
+                                selected={targetDate}
+                                onSelect={setTargetDate}
+                                initialFocus
+                                className="text-white"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-3">
                         <Button
                           variant="outline"
                           onClick={() => setTargetDate(new Date())}
-                          className="w-full"
+                          className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20"
                         >
-                          Today
+                          📅 Today
+                        </Button>
+                        <Button
+                          onClick={handleCalculate}
+                          className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 font-semibold"
+                        >
+                          ✨ Calculate
                         </Button>
                       </div>
+                      
+                      {calculationMessage && (
+                        <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 border border-green-500/30 rounded-lg p-4 mt-6">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                            <span className="text-sm font-medium text-green-300">Your Schedule</span>
+                          </div>
+                          <p className="text-white font-medium leading-relaxed">
+                            {calculationMessage}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                    <div className="col-span-full text-center mt-4">
-                      <Button onClick={handleCalculate} className="w-full max-w-xs">
-                        Calculate
-                      </Button>
-                    </div>
-                    {calculationMessage && (
-                      <p className="text-center text-lg font-bold mt-2">
-                        {calculationMessage}
-                      </p>
-                    )}
-                  </div>
-                </DialogContent>
-              </Dialog>
-            ))}
-            {results.length === 0 && searched && (
-               <div className="col-span-full text-center text-muted-foreground">
-                <p>No results found for your search. Please try another term.</p>
-              </div>
-            )}
-          </div>
+                  </DialogContent>
+                </Dialog>
+              ))}
+              
+              {results.length === 0 && searched && (
+                <div className="col-span-full flex flex-col items-center justify-center py-20">
+                  <div className="text-6xl mb-6">🔍</div>
+                  <h3 className="text-2xl font-bold text-white mb-2">No Series Found</h3>
+                  <p className="text-gray-400 text-center max-w-md">
+                    We couldn&apos;t find any series matching your search. Try different keywords or check your spelling.
+                  </p>
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
     </main>

@@ -20,14 +20,6 @@ const tvDetailsSchema = z.object({
   number_of_seasons: z.number(),
 });
 
-const episodeSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  episode_number: z.number(),
-  still_path: z.string().nullable(),
-  runtime: z.number().nullable().optional(),
-});
-
 const seasonSchema = z.object({
   id: z.number(),
   name: z.string(),
@@ -39,6 +31,7 @@ const seriesDetailsSchema = z.object({
   id: z.number(),
   name: z.string(),
   seasons: z.array(seasonSchema),
+  total_episodes: z.number().optional(),
 });
 
 export type MediaResult = z.infer<typeof mediaResultSchema>;
