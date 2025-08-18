@@ -101,7 +101,7 @@ export default function HomePage() {
         
         <div className="relative">
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
-            Series Tracker
+            Seriefy
           </h1>
           <div className="w-24 h-1 bg-gradient-to-r from-purple-400 to-pink-400 mx-auto rounded-full mb-6" />
         </div>

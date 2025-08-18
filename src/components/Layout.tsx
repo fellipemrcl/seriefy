@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -15,9 +16,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V3a1 1 0 011 1v1M7 4V3a1 1 0 00-1 1v1m0 0v16l4-2 4 2V6" />
                 </svg>
               </div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-                Series Tracker
-              </h1>
+              <Link href="/" className="text-white font-semibold text-lg">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+                  Seriefy
+                </h1>
+              </Link>
             </div>
             
             <div className="hidden md:flex items-center space-x-4">
